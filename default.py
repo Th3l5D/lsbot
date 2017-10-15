@@ -10,11 +10,11 @@ class bot(object):
         self.ssl = None
         self.channels = []
         self.connectedChannels = []
-        self.nick = 'lsbot2'
-        self.realName = 'lsbot lsbot'
+        self.nick = 'default_nick'
+        self.realName = 'default_nick default_nick'
         self.socket = None
         self.debugger = True
-        self.allowedCommands = {'ping': self.ping, 'privmsg': self.privmsg, 'invite': self.invite, 'join': self.join}
+        self.allowedCommands = {'ping': self.ping, 'privmsg': self.privmsg, 'invite': self.invite, 'join': self.join, '433': self.f433}
         self.autoInvite = True
         self.plugins = plugin.Plugin(self.rawSend)
         self.users = {}
@@ -116,9 +116,23 @@ class bot(object):
         self.rawSend('WHOIS', '', datas['from'])
 
 
-b = bot('irc.server')
-b.ssl = True
-b.port = 7000
-b.channels.append('#channel')
+    def f433(self, datas):
+        self.debug('nick utilise. Adding a _')
+        b.nick = b.nick+'_'
+        self.authenticate()
+
+conf_file = open('config.ini').readlines()
+config = {}
+for line in conf_file:
+    if line.strip()[0] is not '#':
+        splited = line.split('=', 1)
+        config[splited[0].strip()] = splited[1].strip()
+
+b = bot(config['server'])
+b.nick=config['nick']
+b.ssl = config['ssl']
+b.port = int(config['port'])
+for chan in config['channels'].split(','):
+    b.channels.append(chan.strip())
 b.connect()
 b.listen()
