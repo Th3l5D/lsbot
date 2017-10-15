@@ -2,6 +2,7 @@ import socket
 import plugin
 import ssl
 import user
+import os
 
 class bot(object):
 
@@ -146,7 +147,7 @@ class bot(object):
 
 
 
-conf_file = open('config.ini').readlines()
+conf_file = open(os.path.dirname(os.path.realpath(__file__))+'/config.ini').readlines()
 config = {}
 for line in conf_file:
     if line.strip()[0] is not '#':
