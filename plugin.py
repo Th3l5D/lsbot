@@ -45,12 +45,12 @@ class Plugin(object):
 
         return self.loaded_plugins
 
-    def execute(self, datas):
+    def execute(self, datas, users):
         plugin_name = datas['content'][1:].split(' ')[0]
         if (plugin_name in self.allowed_plugins_dict.keys()):
             self.reloadIfNeeded(plugin_name)
             try:
-                self.loaded_plugins[plugin_name].execute(datas)
+                self.loaded_plugins[plugin_name].execute(datas=datas, users=users)
             except Exception as e:
                 self.rawSend('PRIVMSG', 'Un poulpe est arrivé et m\'a cassé.',  datas['to'])
                 print(e)

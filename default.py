@@ -1,6 +1,7 @@
 import socket
 import plugin
 import ssl
+import user
 
 class bot(object):
 
@@ -14,10 +15,12 @@ class bot(object):
         self.realName = 'default_nick default_nick'
         self.socket = None
         self.debugger = True
-        self.allowedCommands = {'ping': self.ping, 'privmsg': self.privmsg, 'invite': self.invite, 'join': self.join, '433': self.f433}
+        self.allowedCommands = {
+            'ping': self.ping, 'privmsg': self.privmsg, 'invite': self.invite,
+            'join': self.join, '433': self.f433, '307':self.f307, '353':self.f353}
         self.autoInvite = True
         self.plugins = plugin.Plugin(self.rawSend)
-        self.users = {}
+        self.userlist = {}
 
     def debug(self, line):
         if self.debugger is not None:
@@ -52,18 +55,21 @@ class bot(object):
         if line.startswith(':'):
             datas_dict['from'], line = line[1:].split(' ', 1)
             datas_dict['from'] = datas_dict['from'].split('!')[0]
-            datas = line.split(' ', 1)
-            datas_dict['command'] = datas[0]
+
+        datas = line.split(' ', 1)
+        datas_dict['command'] = datas[0]
+        if datas_dict['command'].isdigit():
+        # numeric commands are server response and don't follow any logic. annoying :/
+        # so we just put the whole line into content. Parsing is done in functions
+            datas_dict['content'] = datas[1]
+        else:
             splited = datas[1].split(':', 1)
             if len(splited) > 1:
                 datas_dict['to'] = splited[0].strip()
                 datas_dict['content'] = splited[1]
             else:
                 datas_dict['to'], datas_dict['content'] = splited[0].split(' ', 1)
-        else:
-            datas = line.split(' ', 1)
-            datas_dict['command'] = datas[0]
-            datas_dict['content'] = datas[1].split(':')[1]
+
 
         return datas_dict
 
@@ -91,16 +97,14 @@ class bot(object):
             queue =  splited[-1]
         
 
-    # commands
+    # received commands
 
     def ping(self, datas):
         self.rawSend('PONG', datas['content'])
-        pass
 
     def invite(self, datas):
         if self.autoInvite:
             self.joinChannel(datas['content'])
-
 
     def privmsg(self, datas):
         if(datas['to'] not in self.connectedChannels):
@@ -110,16 +114,37 @@ class bot(object):
             # get first word, to check if it's a plugin
             word = datas['content'].split(' ', 1)[0]
             if(word.startswith('!') and word[1:].isalnum()):
-                self.plugins.execute(datas)
+                self.plugins.execute(datas, self.userlist)
 
     def join(self, datas):
-        self.rawSend('WHOIS', '', datas['from'])
+        self.whois(datas['from'])
 
 
     def f433(self, datas):
+        # nickname is already in use.
         self.debug('nick utilise. Adding a _')
         b.nick = b.nick+'_'
         self.authenticate()
+
+    def f307(self, datas):
+        # user is identified
+        user = datas['content'].split()[1]
+        self.userlist[user].identified = True
+        self.debug(self.userlist)
+
+    def f353(self, datas):
+        # list users connected to a channel
+        users = datas['content'].split(':')[1].split()
+        for user in users:
+            self.whois(user)
+
+
+    # send commands
+    def whois(self, username):
+        self.rawSend('WHOIS', '', username)
+        self.userlist[username] = user.user(username)
+
+
 
 conf_file = open('config.ini').readlines()
 config = {}
