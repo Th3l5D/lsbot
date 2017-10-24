@@ -145,20 +145,19 @@ class bot(object):
         self.rawSend('WHOIS', '', username)
         self.userlist[username] = user.user(username)
 
+if __name__ == '__main__':
+    conf_file = open(os.path.dirname(os.path.realpath(__file__))+'/config.ini').readlines()
+    config = {}
+    for line in conf_file:
+        if line.strip()[0] is not '#':
+            splited = line.split('=', 1)
+            config[splited[0].strip()] = splited[1].strip()
 
-
-conf_file = open(os.path.dirname(os.path.realpath(__file__))+'/config.ini').readlines()
-config = {}
-for line in conf_file:
-    if line.strip()[0] is not '#':
-        splited = line.split('=', 1)
-        config[splited[0].strip()] = splited[1].strip()
-
-b = bot(config['server'])
-b.nick=config['nick']
-b.ssl = config['ssl']
-b.port = int(config['port'])
-for chan in config['channels'].split(','):
-    b.channels.append(chan.strip())
-b.connect()
-b.listen()
+    b = bot(config['server'])
+    b.nick=config['nick']
+    b.ssl = config['ssl']
+    b.port = int(config['port'])
+    for chan in config['channels'].split(','):
+        b.channels.append(chan.strip())
+    b.connect()
+    b.listen()
