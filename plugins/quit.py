@@ -11,7 +11,7 @@ class quit:
         datas = kwargs['datas']
         users = kwargs['users']
 
-        if 'Th3_l5D' == datas['from'] or 'the_lsd' == datas['from']:
+        if datas['from'] in ['the_lsd', 'Th3_l5D']:
             if users[datas['from']].identified:
                 self.rawSend('PRIVMSG', 'kthxbye', datas['to'])
                 self.rawSend('QUIT', 'J\'vais aller faire les courses')
