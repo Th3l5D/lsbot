@@ -42,6 +42,7 @@ class bot(object):
         if channel is not None:
             self.channels.append(channel)
         for chan in self.channels:
+            chan = chan.lower()
             if chan not in self.connectedChannels:
                 self.rawSend('JOIN', chan)
                 self.connectedChannels.append(chan)
@@ -66,7 +67,7 @@ class bot(object):
         else:
             splited = datas[1].split(':', 1)
             if len(splited) > 1:
-                datas_dict['to'] = splited[0].strip()
+                datas_dict['to'] = splited[0].strip().lower()
                 datas_dict['content'] = splited[1]
             else:
                 datas_dict['to'], datas_dict['content'] = splited[0].split(' ', 1)
@@ -108,10 +109,7 @@ class bot(object):
             self.joinChannel(datas['content'])
 
     def privmsg(self, datas):
-        if(datas['to'] not in self.connectedChannels):
-            for chan in self.connectedChannels:
-                self.rawSend('PRIVMSG', ', '.join((datas['from'], 'il veut violer mon intimité.')), chan)
-        else:
+        if(datas['to'] in self.connectedChannels):
             # get first word, to check if it's a plugin
             word = datas['content'].split(' ', 1)[0]
             if(word.startswith('!') and word[1:].isalnum()):
@@ -142,6 +140,7 @@ class bot(object):
 
     # send commands
     def whois(self, username):
+        username = username.strip('+&@~')
         self.rawSend('WHOIS', '', username)
         self.userlist[username] = user.user(username)
 
