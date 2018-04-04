@@ -1,7 +1,7 @@
 import hashlib
 
 
-class h:
+class hacker:
     def __init__(self, rawSend):
         self.rawSend = rawSend
         self.left_part  = []
